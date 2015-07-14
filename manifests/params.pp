@@ -20,23 +20,10 @@ class php::params {
     default                   => 'php-devel',
   }
 
-  $package_pear = $::operatingsystem ? {
-    /(?i:Ubuntu|Debian|Mint)/ => 'php-pear',
-    /(?i:SLES|OpenSuSe)/      => 'php5-pear',
-    default                   => 'php-pear',
-  }
-
   ### Application related parameters
   $module_prefix = $::operatingsystem ? {
     /(?i:Ubuntu|Debian|Mint|SLES|OpenSuSE)/ => 'php5-',
     default                                 => 'php-',
-  }
-
-  $pear_module_prefix = $::operatingsystem ? {
-    /(?i:Ubuntu|Debian|Mint)/             => 'php-',
-    /(?i:SLES|OpenSuSe)/                  => 'php5-pear-',
-    /(?i:CentOS|RedHat|Scientific|Linux)/ => 'php-pear-',
-    default                               => 'pear-',
   }
 
   $package = $::operatingsystem ? {
@@ -74,24 +61,10 @@ class php::params {
     default => 'root',
   }
 
-  $data_dir = $::operatingsystem ? {
-    default => '',
-  }
-
-  $log_dir = $::operatingsystem ? {
-    default => '',
-  }
-
-  $log_file = $::operatingsystem ? {
-    default => '',
-  }
-
   # General Settings
-  $my_class = ''
   $source = ''
   $source_dir = ''
   $source_dir_purge = false
-  $augeas = false
   $template = ''
   $options = ''
   $version = 'present'
@@ -100,8 +73,6 @@ class php::params {
   $install_options = []
 
   ### General module variables that can have a site or per module default
-  $puppi = false
-  $puppi_helper = 'standard'
   $debug = false
   $audit_only = false
 

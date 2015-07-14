@@ -15,11 +15,6 @@
 # Standard class parameters
 # Define the general class behaviour and customizations
 #
-# [*my_class*]
-#   Name of a custom class to autoload to manage module's customizations
-#   If defined, php class will automatically "include $my_class"
-#   Can be defined also by the (top scope) variable $php_myclass
-#
 # [*service*]
 #   The service that runs the php interpreter. Defines what service gets
 #   notified. Default: apache2|httpd.
@@ -47,12 +42,6 @@
 #   Note source and template parameters are mutually exclusive: don't use both
 #   Can be defined also by the (top scope) variable $php_template
 #
-# [*augeas*]
-#   If set to true (default false), the php.ini will be managed through
-#   augeas. This will make php::pecl automatically add extensions to the
-#   php.ini.
-#   Can be defined also by the (top scope) variable $php_augeas
-#
 # [*options*]
 #   An hash of custom options to be used in templates for arbitrary settings.
 #   Can be defined also by the (top scope) variable $php_options
@@ -77,18 +66,6 @@
 #   Set to 'true' to remove package(s) installed by module
 #   Can be defined also by the (top scope) variable $php_absent
 #
-# [*puppi*]
-#   Set to 'true' to enable creation of module data files that are used by puppi
-#   Can be defined also by the (top scope) variables $php_puppi and $puppi
-#
-# [*puppi_helper*]
-#   Specify the helper to use for puppi commands. The default for this module
-#   is specified in params.pp and is generally a good choice.
-#   You can customize the output of puppi commands for this module using another
-#   puppi helper. Use the define puppi::helper to create a new custom helper
-#   Can be defined also by the (top scope) variables $php_puppi_helper
-#   and $puppi_helper
-#
 # [*debug*]
 #   Set to 'true' to enable modules debugging
 #   Can be defined also by the (top scope) variables $php_debug and $debug
@@ -109,9 +86,6 @@
 # [*package*]
 #   The name of php package
 #
-# [*config_dir*]
-#   Main configuration directory. Used by puppi
-#
 # [*config_file*]
 #   Main configuration file path
 #
@@ -127,18 +101,6 @@
 # [*config_file_init*]
 #   Path of configuration file sourced by init script
 #
-# [*pid_file*]
-#   Path of pid file. Used by monitor
-#
-# [*data_dir*]
-#   Path of application data directory. Used by puppi
-#
-# [*log_dir*]
-#   Base logs directory. Used by puppi
-#
-# [*log_file*]
-#   Log file(s). Used by puppi
-#
 # == Examples
 #
 # You can use this class in 2 ways:
@@ -149,163 +111,112 @@
 #
 #
 class php (
-  $package_devel       = params_lookup( 'package_devel' ),
-  $package_pear        = params_lookup( 'package_pear' ),
-  $my_class            = params_lookup( 'my_class' ),
-  $service             = params_lookup( 'service' ),
-  $service_autorestart = params_lookup( 'service_autorestart' ),
-  $source              = params_lookup( 'source' ),
-  $source_dir          = params_lookup( 'source_dir' ),
-  $source_dir_purge    = params_lookup( 'source_dir_purge' ),
-  $template            = params_lookup( 'template' ),
-  $augeas              = params_lookup( 'augeas' ),
-  $options             = params_lookup( 'options' ),
-  $version             = params_lookup( 'version' ),
-  $install_options     = params_lookup( 'install_options' ),
-  $absent              = params_lookup( 'absent' ),
-  $monitor             = params_lookup( 'monitor' , 'global' ),
-  $monitor_tool        = params_lookup( 'monitor_tool' , 'global' ),
-  $monitor_target      = params_lookup( 'monitor_target' , 'global' ),
-  $puppi               = params_lookup( 'puppi' , 'global' ),
-  $puppi_helper        = params_lookup( 'puppi_helper' , 'global' ),
-  $debug               = params_lookup( 'debug' , 'global' ),
-  $audit_only          = params_lookup( 'audit_only' , 'global' ),
-  $package             = params_lookup( 'package' ),
-  $module_prefix       = params_lookup( 'module_prefix' ),
-  $config_dir          = params_lookup( 'config_dir' ),
-  $config_file         = params_lookup( 'config_file' ),
-  $config_file_mode    = params_lookup( 'config_file_mode' ),
-  $config_file_owner   = params_lookup( 'config_file_owner' ),
-  $config_file_group   = params_lookup( 'config_file_group' ),
-  $config_file_init    = params_lookup( 'config_file_init' ),
-  $pid_file            = params_lookup( 'pid_file' ),
-  $data_dir            = params_lookup( 'data_dir' ),
-  $log_dir             = params_lookup( 'log_dir' ),
-  $log_file            = params_lookup( 'log_file' ),
-  $port                = params_lookup( 'port' ),
-  $protocol            = params_lookup( 'protocol' )
-  ) inherits php::params {
+  $package_devel       = $php::params::package_devel,
+  $service             = $php::params::service,
+  $service_autorestart = $php::params::service_autorestart,
+  $source              = $php::params::source,
+  $source_dir          = $php::params::source_dir,
+  $source_dir_purge    = $php::params::source_dir_purge,
+  $template            = $php::params::template,
+  $options             = $php::params::options,
+  $version             = $php::params::version,
+  $install_options     = $php::params::install_options,
+  $absent              = $php::params::absent,
+  $debug               = $php::params::debug,
+  $audit_only          = $php::params::audit_only,
+  $package             = $php::params::package,
+  $module_prefix       = $php::params::module_prefix,
+  $config_dir          = $php::params::config_dir,
+  $config_file         = $php::params::config_file,
+  $config_file_mode    = $php::params::config_file_mode,
+  $config_file_owner   = $php::params::config_file_owner,
+  $config_file_group   = $php::params::config_file_group,
+  ) {
 
-  $bool_service_autorestart=any2bool($service_autorestart)
-  $bool_source_dir_purge=any2bool($source_dir_purge)
-  $bool_augeas=any2bool($augeas)
-  $bool_absent=any2bool($absent)
-  $bool_monitor=any2bool($monitor)
-  $bool_puppi=any2bool($puppi)
-  $bool_debug=any2bool($debug)
-  $bool_audit_only=any2bool($audit_only)
 
   ### Definition of some variables used in the module
-  $manage_package = $php::bool_absent ? {
+  $manage_package = $absent ? {
     true  => 'absent',
-    false => $php::version,
+    false => $version,
   }
 
-  $manage_file = $php::bool_absent ? {
+  $manage_file = $absent ? {
     true    => 'absent',
     default => 'present',
   }
 
-  if $php::bool_absent == true {
-    $manage_monitor = false
-  } else {
-    $manage_monitor = true
-  }
 
-  $manage_audit = $php::bool_audit_only ? {
+  $manage_audit = $audit_only ? {
     true  => 'all',
     false => undef,
   }
 
-  $manage_file_replace = $php::bool_audit_only ? {
+  $manage_file_replace = $audit_only ? {
     true  => false,
     false => true,
   }
 
-  if ($php::source != '' and $php::template != '') {
+  if ($source != '' and $template != '') {
     fail ('PHP: cannot set both source and template')
   }
-  if ($php::source != '' and $php::bool_augeas) {
-    fail ('PHP: cannot set both source and augeas')
-  }
-  if ($php::template != '' and $php::bool_augeas) {
-    fail ('PHP: cannot set both template and augeas')
-  }
 
-  $manage_file_source = $php::source ? {
+  $manage_file_source = $source ? {
     ''        => undef,
-    default   => $php::source,
+    default   => $source,
   }
 
-  $manage_file_content = $php::template ? {
+  $manage_file_content = $template ? {
     ''        => undef,
-    default   => template($php::template),
+    default   => template($template),
   }
 
-  $realservice_autorestart = $bool_service_autorestart ? {
-    true  => Service[$php::service],
+  $realservice_autorestart = $service_autorestart ? {
+    true  => Service[$service],
     false => undef,
   }
 
   ### Managed resources
   package { 'php':
-    ensure          => $php::manage_package,
-    name            => $php::package,
-    install_options => $php::install_options,
+    ensure          => $manage_package,
+    name            => $package,
+    install_options => $install_options,
   }
 
   file { 'php.conf':
-    ensure  => $php::manage_file,
-    path    => $php::config_file,
-    mode    => $php::config_file_mode,
-    owner   => $php::config_file_owner,
-    group   => $php::config_file_group,
+    ensure  => $manage_file,
+    path    => $config_file,
+    mode    => $config_file_mode,
+    owner   => $config_file_owner,
+    group   => $config_file_group,
     require => Package['php'],
-    source  => $php::manage_file_source,
-    content => $php::manage_file_content,
-    replace => $php::manage_file_replace,
-    audit   => $php::manage_audit,
+    source  => $manage_file_source,
+    content => $manage_file_content,
+    replace => $manage_file_replace,
+    audit   => $manage_audit,
     notify  => $realservice_autorestart,
   }
 
   # The whole php configuration directory can be recursively overriden
-  if $php::source_dir != ''{
+  if $source_dir != ''{
     file { 'php.dir':
       ensure  => directory,
-      path    => $php::config_dir,
+      path    => $config_dir,
       require => Package['php'],
-      source  => $php::source_dir,
+      source  => $source_dir,
       recurse => true,
       links   => follow,
-      purge   => $php::bool_source_dir_purge,
-      force   => $php::bool_source_dir_purge,
-      replace => $php::manage_file_replace,
-      audit   => $php::manage_audit,
-    }
-  }
-
-
-  ### Include custom class if $my_class is set
-  if $php::my_class != '' {
-    include $php::my_class
-  }
-
-
-  ### Provide puppi data, if enabled ( puppi => true )
-  if $php::bool_puppi == true {
-    $classvars=get_class_args()
-    puppi::ze { 'php':
-      ensure    => $php::manage_file,
-      variables => $classvars,
-      helper    => $php::puppi_helper,
+      purge   => $source_dir_purge,
+      force   => $source_dir_purge,
+      replace => $manage_file_replace,
+      audit   => $manage_audit,
     }
   }
 
 
   ### Debugging, if enabled ( debug => true )
-  if $php::bool_debug == true {
+  if $debug == true {
     file { 'debug_php':
-      ensure  => $php::manage_file,
+      ensure  => $manage_file,
       path    => "${settings::vardir}/debug-php",
       mode    => '0640',
       owner   => 'root',
