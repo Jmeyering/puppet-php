@@ -83,12 +83,11 @@ define php::module (
   $real_install_package = "${real_module_prefix}${name}"
 
   if defined(Package[$real_install_package]) == false {
-    package { "PhpModule_${name}":
+    package { $real_install_package:
       ensure          => $real_version,
-      name            => $real_install_package,
       notify          => $real_service_autorestart,
       install_options => $real_install_options,
-      require         => Package['php'],
+      require         => Package["${php::package}"],
     }
   }
 

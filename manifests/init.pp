@@ -66,10 +66,6 @@
 #   Set to 'true' to remove package(s) installed by module
 #   Can be defined also by the (top scope) variable $php_absent
 #
-# [*debug*]
-#   Set to 'true' to enable modules debugging
-#   Can be defined also by the (top scope) variables $php_debug and $debug
-#
 # [*audit_only*]
 #   Set to 'true' if you don't intend to override existing configuration files
 #   and want to audit the difference between existing files and the ones
@@ -122,7 +118,6 @@ class php (
   $version             = $php::params::version,
   $install_options     = $php::params::install_options,
   $absent              = $php::params::absent,
-  $debug               = $php::params::debug,
   $audit_only          = $php::params::audit_only,
   $package             = $php::params::package,
   $module_prefix       = $php::params::module_prefix,
@@ -131,8 +126,7 @@ class php (
   $config_file_mode    = $php::params::config_file_mode,
   $config_file_owner   = $php::params::config_file_owner,
   $config_file_group   = $php::params::config_file_group,
-  ) {
-
+  ) inherits php::params {
 
   ### Definition of some variables used in the module
   $manage_package = $absent ? {
@@ -176,9 +170,8 @@ class php (
   }
 
   ### Managed resources
-  package { 'php':
+  package { "${package}":
     ensure          => $manage_package,
-    name            => $package,
     install_options => $install_options,
   }
 
@@ -188,7 +181,7 @@ class php (
     mode    => $config_file_mode,
     owner   => $config_file_owner,
     group   => $config_file_group,
-    require => Package['php'],
+    require => Package["${package}"],
     source  => $manage_file_source,
     content => $manage_file_content,
     replace => $manage_file_replace,
@@ -201,7 +194,7 @@ class php (
     file { 'php.dir':
       ensure  => directory,
       path    => $config_dir,
-      require => Package['php'],
+      require => Package["${package}"],
       source  => $source_dir,
       recurse => true,
       links   => follow,
@@ -209,19 +202,6 @@ class php (
       force   => $source_dir_purge,
       replace => $manage_file_replace,
       audit   => $manage_audit,
-    }
-  }
-
-
-  ### Debugging, if enabled ( debug => true )
-  if $debug == true {
-    file { 'debug_php':
-      ensure  => $manage_file,
-      path    => "${settings::vardir}/debug-php",
-      mode    => '0640',
-      owner   => 'root',
-      group   => 'root',
-      content => inline_template('<%= scope.to_hash.reject { |k,v| k.to_s =~ /(uptime.*|path|timestamp|free|.*password.*|.*psk.*|.*key)/ }.to_yaml %>'),
     }
   }
 

@@ -37,28 +37,33 @@ define php::ini (
     default                                 => '/',
   }
 
+  $realservice_autorestart = $php::service_autorestart ? {
+    true  => Service[$service],
+    false => undef,
+  }
+
   if ($sapi_target == 'all') {
 
     file { "${config_dir}${http_sapi}conf.d/${target}":
       ensure  => 'present',
       content => template($template),
-      require => Package['php'],
+      require => Package["${php::package}"],
       before  => File["${config_dir}/cli/conf.d/${target}"],
     }
 
     file { "${config_dir}/cli/conf.d/${target}":
       ensure  => 'present',
       content => template($template),
-      require => Package['php'],
-      notify  => Service[$service],
+      require => Package["${php::package}"],
+      notify  => $realservice_autorestart,
     }
 
   }else{
     file { "${config_dir}/${sapi_target}/conf.d/${target}":
       ensure  => 'present',
       content => template($template),
-      require => Package['php'],
-      notify  => Service[$service],
+      require => Package["${php::package}"],
+      notify  => $realservice_autorestart,
     }
 
   }

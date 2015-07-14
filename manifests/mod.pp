@@ -62,7 +62,7 @@ define php::mod (
     command     => "${php_mod_tool} ${name}",
     path        => $path,
     notify      => $real_service_autorestart,
-    require     => Package['php'],
+    require     => Package["${php::package}"],
   }
 
 }

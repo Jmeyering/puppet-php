@@ -73,7 +73,6 @@ class php::params {
   $install_options = []
 
   ### General module variables that can have a site or per module default
-  $debug = false
   $audit_only = false
 
 }
